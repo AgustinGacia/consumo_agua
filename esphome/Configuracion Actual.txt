@@ -1,0 +1,12 @@
+--> Tengo Home Assistant API cerrado
+--> Tengo comunicacion MQTT habilitado a un broker en mi PC
+
+
+--> En el A0 tengo conectado el LM35 que publica en ambiente/temperatura 
+
+--> El pin 39 funciona como contador, donde publica en "contador/flujo" y "contador/total". Se encuentra conectado a un boton
+
+--> El pin 13 tiene conectado un led, que esta subscripto a "prueba/led_control" que manda "ON" o "OFF"
+
+--> En el pin 32 es una salida pwm de frecuencia 1 kHz, donde esta publicado en "prueba/pwm_duty" que maneja el ciclo
+

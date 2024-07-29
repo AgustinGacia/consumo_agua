@@ -1,0 +1,113 @@
+esphome:
+  name: manejo_contadores
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+# api:
+#   password: ""
+
+ota:
+  password: "123456789"
+
+wifi:
+  ssid: "DIGIFIBRA-CszT"
+  password: "FsUk6fSzQdPA"
+
+captive_portal:
+
+web_server:
+  port: 80
+
+globals:
+  - id: volumen_01
+    type: float
+    restore_value: yes
+    initial_value: "0"
+  - id: volumen_01_parcial
+    type: float
+    restore_value: no
+    initial_value: "0"
+
+sensor:
+  # Contador 01
+  - platform: pulse_counter
+    id: my_pulse_counter
+    pin:
+      number: 32
+      mode:
+        input: true
+    name: "Flujo Nº 01"
+    update_interval: 2s
+    unit_of_measurement: "L/min"
+    state_topic: "contador/01/flujo"
+    filters:
+      - lambda: |-
+          return float(x / 660);
+    total:
+      name: "Volumen Nº 01"
+      unit_of_measurement: "L"
+      state_topic: "contador/01/volumen"
+      accuracy_decimals: 2
+      filters:
+        - lambda: |-
+            return float(x / 660);
+        - sliding_window_moving_average:
+            window_size: 3
+            send_every: 1
+      on_value:
+        then:
+          - lambda: |-
+              float dif = x-id(volumen_01_parcial);
+              id(volumen_01_parcial) = x;
+              id(volumen_01) += dif;
+
+  # PRUEBA de Temperatura
+  - platform: adc
+    pin: A0
+    name: "Temperatura"
+    unit_of_measurement: "ºC"
+    update_interval: 2s
+    state_topic: "ambiente/temperatura"
+    filters:
+      - multiply: 1.1
+      - multiply: 100
+
+output:
+  # Valvula 01
+  - platform: ledc
+    pin: 33
+    id: val_01
+    frequency: 1000 Hz
+
+mqtt:
+  broker: 192.168.1.134
+  port: 1883
+  client_id: "ESP32"
+  log_topic: null
+  on_message:
+    - topic: "valvula/01/valor"
+      then:
+        - lambda: |-
+            auto level = strtof(x.c_str(), nullptr) * 0.8 / 100.0 + 0.2;
+            id(val_01).set_level(level);
+    - topic: "contador/01/reset"
+      then:
+        - lambda: |-
+            id(volumen_01)=0;
+            id(volumen_01_parcial)=0;
+            id(my_pulse_counter).set_total_pulses(0);
+
+interval:
+  - interval: 2s
+    then:
+      - mqtt.publish:
+          topic: "contador/01/volumenAcumulado"
+          payload: !lambda |-
+            return std::to_string(id(volumen_01));

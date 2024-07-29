@@ -1,0 +1,58 @@
+esphome:
+  name: esp32_pwm_pulse_counter
+  platform: ESP32
+  board: esp32dev
+
+wifi:
+  ssid: "DIGIFIBRA-CszT"
+  password: "FsUk6fSzQdPA"
+
+# Enable logging
+logger:
+
+# Web server to access the frequency measured
+web_server:
+  port: 80
+
+# Generate PWM signal on GPIO32
+output:
+  - platform: ledc
+    pin: 4
+    id: pwm_output
+    frequency: 5000 Hz # Puedes cambiar a 50 Hz si lo necesitas
+
+# Measure frequency on GPIO33
+sensor:
+  - platform: pulse_counter
+    pin: 33
+    name: "Frequency Sensor 33"
+    update_interval: 1s
+    id: freq_sensor33
+    unit_of_measurement: "Hz"
+    filters:
+      - lambda: |-
+          return x / 60.0;
+      - sliding_window_moving_average:
+          window_size: 3
+          send_every: 1
+  - platform: pulse_counter
+    pin: 32
+    name: "Frequency Sensor 34"
+    update_interval: 1s
+    id: freq_sensor32
+    unit_of_measurement: "Hz"
+    filters:
+      - lambda: |-
+          return x / 60.0;
+      - sliding_window_moving_average:
+          window_size: 3
+          send_every: 1
+
+# Set duty cycle to 50% after startup
+interval:
+  - interval: 0.1s
+    then:
+      - output.set_level:
+          id: pwm_output
+          level: 0.5 # Ajusta el ciclo de trabajo al 50%
+
