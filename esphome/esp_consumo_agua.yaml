@@ -28,8 +28,8 @@ ota:
   password: ""
 
 wifi:
-  ssid: "udcdocencia"
-  password: "Universidade.2223"
+  ssid: "****" # Se debe agregar la red
+  password: "****" # Se debe agregar la contraseña
 
   # Enable fallback hotspot (captive portal) in case wifi connection fails
   ap:
@@ -150,7 +150,7 @@ output:
     frequency: 1000 Hz
 
 mqtt:
-  broker: 10.20.31.223
+  broker: XX.XX.XX.XX   # se debe ingresar la ip del broker mqtt
   port: 1883
   client_id: "ESP32"
   log_topic: null
